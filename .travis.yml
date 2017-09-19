@@ -1,7 +1,7 @@
 language: node_js
 node_js:
   - "6"
-script: build
+script: npm run build
 deploy:
   provider: pages
   skip_cleanup: true
