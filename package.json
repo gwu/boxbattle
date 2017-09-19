@@ -1,0 +1,15 @@
+{
+  "name": "boxbattle",
+  "version": "1.0.0",
+  "description": "Box Battle Game",
+  "main": "dist/bundle.js",
+  "author": "wugarrett@gmail.com",
+  "license": "UNLICENSED",
+  "scripts": {
+    "build": "webpack"
+  },
+  "devDependencies": {
+    "html-webpack-plugin": "^2.30.1",
+    "webpack": "^3.6.0"
+  }
+}
