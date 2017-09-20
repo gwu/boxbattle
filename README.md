@@ -1,4 +1,4 @@
-[Build Status](https://travis-ci.org/gwu/boxbattle.svg?branch=master)
+![Build Status](https://travis-ci.org/gwu/boxbattle.svg?branch=master)
 
 Box Battle
 ==========
