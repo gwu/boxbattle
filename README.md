@@ -1,7 +1,7 @@
 Box Battle
 ==========
 
-A browser-based puzzle-game.
+A browser-based puzzle game.
 
 ### Development requirements
 
