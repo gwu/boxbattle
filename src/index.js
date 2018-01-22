@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import * as PIXI from 'pixi.js'
 import { loadTextures, getTexture } from './textures'
+import { PlayingField } from './game'
 
 function main () {
   // Create the renderer.
@@ -29,6 +30,12 @@ function onWindowResize (renderer, event) {
 }
 
 function startGame (app) {
+  const playingField = new PlayingField({
+    width: 6,
+    height: 12
+  })
+  app.stage.addChild(playingField.view)
+
   const turtle = new PIXI.Sprite(getTexture('green'))
   turtle.anchor.set(0.5)
   turtle.x = app.screen.width / 2

@@ -1,9 +1,17 @@
 import _ from 'lodash'
 import * as PIXI from 'pixi.js'
 import greenUrl from './TurtleGreen.png'
+import blueUrl from './TurtleBlue.png'
+import redUrl from './TurtleRed.png'
+import purpleUrl from './TurtlePurple.png'
+import yellowUrl from './TurtleYellow.png'
 
 export const textures = {
-  green: greenUrl
+  green: greenUrl,
+  blue: blueUrl,
+  red: redUrl,
+  purple: purpleUrl,
+  yellow: yellowUrl
 }
 
 export function loadTextures () {
