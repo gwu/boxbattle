@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import * as PIXI from 'pixi.js'
 import { loadTextures, getTexture } from './textures'
-import { PlayingField } from './game'
+import { Game } from './game'
 
 function main () {
   // Create the renderer.
@@ -30,11 +30,11 @@ function onWindowResize (renderer, event) {
 }
 
 function startGame (app) {
-  const playingField = new PlayingField({
-    width: 6,
-    height: 12
+  const game = new Game({
+    type: Game.Type.PUZZLE,
+    stage: 2
   })
-  app.stage.addChild(playingField.view)
+  app.stage.addChild(game.view)
 
   const turtle = new PIXI.Sprite(getTexture('green'))
   turtle.anchor.set(0.5)
@@ -49,19 +49,19 @@ function startGame (app) {
   window.addEventListener('keydown', (event) => {
     switch (event.key) {
       case 'a':
-        playingField.grid.swap(playingField.cursor.y, playingField.cursor.x)
+        game.swap()
         break
       case 'ArrowUp':
-        playingField.cursor.y++
+        game.moveCursor(0, 1)
         break
       case 'ArrowDown':
-        playingField.cursor.y--
+        game.moveCursor(0, -1)
         break
       case 'ArrowLeft':
-        playingField.cursor.x--
+        game.moveCursor(-1, 0)
         break
       case 'ArrowRight':
-        playingField.cursor.x++
+        game.moveCursor(1, 0)
         break
       default:
         return

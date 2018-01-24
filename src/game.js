@@ -1,6 +1,39 @@
 import _ from 'lodash'
 import * as PIXI from 'pixi.js'
 import { getTexture } from './textures'
+import { loadPuzzleData } from './puzzle'
+
+export class Game {
+  constructor (opts) {
+    this._view = new PIXI.Container()
+    this._playingField = new PlayingField({
+      width: 6,
+      height: 12
+    })
+    this._view.addChild(this._playingField.view)
+
+    if (opts.type === Game.Type.PUZZLE) {
+      this._playingField.grid.loadPuzzle(opts.stage)
+    }
+  }
+
+  get view () {
+    return this._view
+  }
+
+  swap () {
+    this._playingField.grid.swap(this._playingField.cursor.y, this._playingField.cursor.x)
+  }
+
+  moveCursor (dx, dy) {
+    this._playingField.cursor.x += dx
+    this._playingField.cursor.y += dy
+  }
+}
+
+Game.Type = {
+  PUZZLE: Symbol('PUZZLE')
+}
 
 export class PlayingField {
   constructor (opts) {
@@ -14,7 +47,6 @@ export class PlayingField {
       height: this._height,
       size: this._size
     })
-    this._grid.loadPuzzle()
     this._view.addChild(this._grid.view)
 
     this._cursor = new Cursor({
@@ -123,23 +155,19 @@ class Grid {
     this._blocks[row][col] = block
   }
 
-  loadPuzzle () {
+  loadPuzzle (stage) {
     this.clear()
-    this.setBlock(0, 0, new Block({
-      type: Block.Types.COLOR,
-      color: Block.Colors[2],
-      size: this._size
-    }))
-    this.setBlock(0, 1, new Block({
-      type: Block.Types.COLOR,
-      color: Block.Colors[2],
-      size: this._size
-    }))
-    this.setBlock(0, 3, new Block({
-      type: Block.Types.COLOR,
-      color: Block.Colors[2],
-      size: this._size
-    }))
+    loadPuzzleData(stage)
+      .then((data) => {
+        data.blocks.forEach((blockDef) => {
+          this.setBlock(blockDef.row, blockDef.col, new Block({
+            type: Block.Types.COLOR,
+            color: Block.Colors[blockDef.color],
+            size: this._size
+          }))
+        })
+      })
+      .catch((err) => console.log(err))
   }
 
   get view () {
