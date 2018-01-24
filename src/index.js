@@ -45,6 +45,29 @@ function startGame (app) {
   app.ticker.add((delta) => {
     turtle.rotation += 0.01 * delta
   })
+
+  window.addEventListener('keydown', (event) => {
+    switch (event.key) {
+      case 'a':
+        playingField.grid.swap(playingField.cursor.y, playingField.cursor.x)
+        break
+      case 'ArrowUp':
+        playingField.cursor.y++
+        break
+      case 'ArrowDown':
+        playingField.cursor.y--
+        break
+      case 'ArrowLeft':
+        playingField.cursor.x--
+        break
+      case 'ArrowRight':
+        playingField.cursor.x++
+        break
+      default:
+        return
+    }
+    event.preventDefault()
+  })
 }
 
 main()

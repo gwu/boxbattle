@@ -23,29 +23,6 @@ export class PlayingField {
       height: this._height
     })
     this._view.addChild(this._cursor.view)
-
-    window.addEventListener('keydown', (event) => {
-      switch (event.key) {
-        case 'a':
-          this._grid.swap(this._cursor.y, this.cursor.x)
-          break
-        case 'ArrowUp':
-          this._cursor.y++
-          break
-        case 'ArrowDown':
-          this._cursor.y--
-          break
-        case 'ArrowLeft':
-          this._cursor.x--
-          break
-        case 'ArrowRight':
-          this._cursor.x++
-          break
-        default:
-          return
-      }
-      event.preventDefault()
-    })
   }
 
   get view () {
@@ -54,6 +31,10 @@ export class PlayingField {
 
   get cursor () {
     return this._cursor
+  }
+
+  get grid () {
+    return this._grid
   }
 }
 
