@@ -166,6 +166,12 @@ class Grid {
     this._width = opts.width
     this._height = opts.height
     this._size = opts.size
+
+    this.createGridPosition =
+      (block, row, col) => new GridPosition(
+        this._size, this._width, this._height, block, row, col
+      )
+
     this.clear()
 
     this.tick = (delta) => {
@@ -174,9 +180,9 @@ class Grid {
       _.range(1, this._height - 1).forEach(
         (row) => _.range(this._width).forEach(
           (col) => {
-            const block = this._blocks[row][col]
-            const below = this._blocks[row - 1][col]
-            const above = this._blocks[row + 1][col]
+            const block = this._blocks[row][col].block
+            const below = this._blocks[row - 1][col].block
+            const above = this._blocks[row + 1][col].block
             if (!below.isWeightBearing && block.type !== Block.Types.EMPTY) {
               block.fall(() => {
                 if (above.type === Block.Types.EMPTY) {
@@ -189,11 +195,35 @@ class Grid {
         )
       )
 
+      // Find any matches.
+      _.range(this._height).forEach(
+        (row) => _.range(this._width).forEach(
+          col => {
+            const block = this._blocks[row][col].block
+
+            // Horizontal matches.
+            let c = 1
+            while (col + c < this._width && this._blocks[row][col + c].block.matches(block)) {
+              c++
+            }
+            if (c >= 3) {
+              _.range(c).forEach((c) => {
+                this._blocks[row][col + c].block.match(() => {
+                  this.setBlock(row, col + c, new Block({ type: Block.Types.EMPTY }))
+                })
+              })
+            }
+
+            // TODO vertical matches.
+          }
+        )
+      )
+
       // All the blocks should tick.
       _.range(this._height).forEach(
         (row) => _.range(this._width).forEach(
           col => {
-            const block = this._blocks[row][col]
+            const block = this._blocks[row][col].block
             block.tick(delta)
           }
         )
@@ -204,14 +234,14 @@ class Grid {
   clear () {
     this._blocks = _.range(this._height).map(
       (row) => _.range(this._width).map(
-        (block) => new Block({ type: Block.Types.EMPTY })
+        (block) => this.createGridPosition(new Block({ type: Block.Types.EMPTY }))
       )
     )
   }
 
   swap (row, col) {
-    const left = this._blocks[row][col]
-    const right = this._blocks[row][col + 1]
+    const left = this._blocks[row][col].block
+    const right = this._blocks[row][col + 1].block
     this.setBlock(row, col, right)
     this.setBlock(row, col + 1, left)
   }
@@ -219,12 +249,11 @@ class Grid {
   setBlock (row, col, block) {
     this._view.removeChild(this._blocks[row][col].view)
 
-    const blockViewContainer = new PIXI.Container()
-    blockViewContainer.y = (this._height - row - 1) * this._size
-    blockViewContainer.x = col * this._size
-    blockViewContainer.addChild(block.view)
-    this._view.addChild(blockViewContainer)
-    this._blocks[row][col] = block
+    const gridPosition = this.createGridPosition(block, row, col)
+    if (block.type !== Block.Types.EMPTY) {
+      this._view.addChild(gridPosition.view)
+    }
+    this._blocks[row][col] = gridPosition
   }
 
   loadPuzzle (stage) {
@@ -240,6 +269,21 @@ class Grid {
         })
       })
       .catch((err) => console.log(err))
+  }
+
+  get view () {
+    return this._view
+  }
+}
+
+class GridPosition {
+  constructor (size, width, height, block, row, col) {
+    this._view = new PIXI.Container()
+    this.block = block
+
+    this._view.y = (height - row - 1) * size
+    this._view.x = col * size
+    this._view.addChild(block.view)
   }
 
   get view () {
@@ -265,9 +309,29 @@ class Block {
       if (this._isFalling) {
         this._fallingTimeElapsed += delta
 
+        this._view.y = this._fallingTimeElapsed < Block.FALL_DELAY
+          ? 0
+          : (
+            this._size * (this._fallingTimeElapsed - Block.FALL_DELAY) /
+              (Block.FALL_DURATION - Block.FALL_DELAY)
+          )
+
         if (this._fallingTimeElapsed >= Block.FALL_DURATION) {
           this._isFalling = false
+          this._view.y = 0
           this._onFallComplete()
+        }
+      }
+
+      if (this._isMatching) {
+        this._matchingTimeElapsed += delta
+
+        this._view.alpha =
+          (Block.MATCH_DURATION - this._matchingTimeElapsed) / Block.MATCH_DURATION
+
+        if (this._matchingTimeElapsed >= Block.MATCH_DURATION) {
+          this._isMatching = false
+          this._onMatchComplete()
         }
       }
     }
@@ -293,6 +357,24 @@ class Block {
     this._fallingTimeElapsed = 0
     this._onFallComplete = onFallComplete
   }
+
+  matches (other) {
+    return (this._type === Block.Types.COLOR && !this._isFalling &&
+            !(this._isMatching && this._matchingTimeElapsed > 0) &&
+            other._type === Block.Types.COLOR && !other._isFalling &&
+            !(other._isMatching && other._matchingTimeElapsed > 0) &&
+            this._color === other._color)
+  }
+
+  match (onMatchComplete) {
+    if (this._isMatching && this._matchingTimeElapsed > 0) {
+      return
+    }
+
+    this._isMatching = true
+    this._matchingTimeElapsed = 0
+    this._onMatchComplete = onMatchComplete
+  }
 }
 
 Block.Types = {
@@ -304,4 +386,6 @@ Block.Colors = [
   'red', 'yellow', 'green', 'blue', 'purple'
 ]
 
-Block.FALL_DURATION = 10
+Block.FALL_DURATION = 15
+Block.FALL_DELAY = 10
+Block.MATCH_DURATION = 60
