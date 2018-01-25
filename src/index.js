@@ -35,6 +35,7 @@ function startGame (app) {
     stage: 2
   })
   app.stage.addChild(game.view)
+  app.ticker.add(game.tick)
 
   // const turtle = new PIXI.Sprite(getTexture('green'))
   // turtle.anchor.set(0.5)

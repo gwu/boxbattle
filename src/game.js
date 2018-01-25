@@ -18,6 +18,10 @@ export class Game {
     if (opts.type === Game.Type.PUZZLE) {
       this._playingField.grid.loadPuzzle(opts.stage)
     }
+
+    this.tick = (delta) => {
+      this._playingField.tick(delta)
+    }
   }
 
   get view () {
@@ -65,6 +69,10 @@ export class PlayingField {
       size: this._size
     })
     this._view.addChild(this._frame.view)
+
+    this.tick = (delta) => {
+      this._grid.tick(delta)
+    }
   }
 
   get view () {
@@ -88,7 +96,7 @@ class Frame {
     this._height = opts.height
 
     const border = new PIXI.Graphics()
-    border.lineStyle(8, 0x003399, 1)
+    border.lineStyle(1, 0x003399, 1)
     border.moveTo(0, 0)
     border.lineTo(this._size * this._width, 0)
     border.lineTo(this._size * this._width, this._size * this._height)
@@ -114,7 +122,7 @@ class Cursor {
     this.y = 0
 
     const frame = new PIXI.Graphics()
-    frame.lineStyle(4, 0xffffff, 1)
+    frame.lineStyle(2, 0xffffff, 1)
     frame.moveTo(0, 0)
     frame.lineTo(this._size * 2, 0)
     frame.lineTo(this._size * 2, this._size)
@@ -159,6 +167,38 @@ class Grid {
     this._height = opts.height
     this._size = opts.size
     this.clear()
+
+    this.tick = (delta) => {
+      // Scan over the blocks to see if any should start falling.
+      // Scan from the bottom row upwards.
+      _.range(1, this._height - 1).forEach(
+        (row) => _.range(this._width).forEach(
+          (col) => {
+            const block = this._blocks[row][col]
+            const below = this._blocks[row - 1][col]
+            const above = this._blocks[row + 1][col]
+            if (!below.isWeightBearing && block.type !== Block.Types.EMPTY) {
+              block.fall(() => {
+                if (above.type === Block.Types.EMPTY) {
+                  this.setBlock(row, col, new Block({ type: Block.Types.EMPTY }))
+                }
+                this.setBlock(row - 1, col, block)
+              })
+            }
+          }
+        )
+      )
+
+      // All the blocks should tick.
+      _.range(this._height).forEach(
+        (row) => _.range(this._width).forEach(
+          col => {
+            const block = this._blocks[row][col]
+            block.tick(delta)
+          }
+        )
+      )
+    }
   }
 
   clear () {
@@ -220,10 +260,38 @@ class Block {
       block.height = this._size
       this._view.addChild(block)
     }
+
+    this.tick = (delta) => {
+      if (this._isFalling) {
+        this._fallingTimeElapsed += delta
+
+        if (this._fallingTimeElapsed >= Block.FALL_DURATION) {
+          this._isFalling = false
+          this._onFallComplete()
+        }
+      }
+    }
   }
 
   get view () {
     return this._view
+  }
+
+  get type () {
+    return this._type
+  }
+
+  get isWeightBearing () {
+    return this._type !== Block.Types.EMPTY && !this._isFalling
+  }
+
+  fall (onFallComplete) {
+    if (this._isFalling) {
+      return
+    }
+    this._isFalling = true
+    this._fallingTimeElapsed = 0
+    this._onFallComplete = onFallComplete
   }
 }
 
@@ -235,3 +303,5 @@ Block.Types = {
 Block.Colors = [
   'red', 'yellow', 'green', 'blue', 'purple'
 ]
+
+Block.FALL_DURATION = 10
