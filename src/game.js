@@ -8,9 +8,12 @@ export class Game {
     this._view = new PIXI.Container()
     this._playingField = new PlayingField({
       width: 6,
-      height: 12
+      height: 12,
+      size: 32
     })
     this._view.addChild(this._playingField.view)
+    this._view.x = window.innerWidth / 2 - 3 * 32
+    this._view.y = window.innerHeight / 2 - 6 * 32
 
     if (opts.type === Game.Type.PUZZLE) {
       this._playingField.grid.loadPuzzle(opts.stage)
@@ -40,7 +43,7 @@ export class PlayingField {
     this._view = new PIXI.Container()
     this._width = opts.width
     this._height = opts.height
-    this._size = opts.size || 40
+    this._size = opts.size
 
     this._grid = new Grid({
       width: this._width,
@@ -50,11 +53,18 @@ export class PlayingField {
     this._view.addChild(this._grid.view)
 
     this._cursor = new Cursor({
-      size: this._size,
       width: this._width,
-      height: this._height
+      height: this._height,
+      size: this._size
     })
     this._view.addChild(this._cursor.view)
+
+    this._frame = new Frame({
+      width: this._width,
+      height: this._height,
+      size: this._size
+    })
+    this._view.addChild(this._frame.view)
   }
 
   get view () {
@@ -67,6 +77,28 @@ export class PlayingField {
 
   get grid () {
     return this._grid
+  }
+}
+
+class Frame {
+  constructor (opts) {
+    this._view = new PIXI.Container()
+    this._size = opts.size
+    this._width = opts.width
+    this._height = opts.height
+
+    const border = new PIXI.Graphics()
+    border.lineStyle(8, 0x003399, 1)
+    border.moveTo(0, 0)
+    border.lineTo(this._size * this._width, 0)
+    border.lineTo(this._size * this._width, this._size * this._height)
+    border.lineTo(0, this._size * this._height)
+    border.lineTo(0, 0)
+    this._view.addChild(border)
+  }
+
+  get view () {
+    return this._view
   }
 }
 

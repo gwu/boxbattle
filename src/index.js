@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import * as PIXI from 'pixi.js'
-import { loadTextures, getTexture } from './textures'
+import { loadTextures } from './textures'
 import { Game } from './game'
 
 function main () {
@@ -36,15 +36,15 @@ function startGame (app) {
   })
   app.stage.addChild(game.view)
 
-  const turtle = new PIXI.Sprite(getTexture('green'))
-  turtle.anchor.set(0.5)
-  turtle.x = app.screen.width / 2
-  turtle.y = app.screen.height / 2
-  app.stage.addChild(turtle)
+  // const turtle = new PIXI.Sprite(getTexture('green'))
+  // turtle.anchor.set(0.5)
+  // turtle.x = app.screen.width / 2
+  // turtle.y = app.screen.height / 2
+  // app.stage.addChild(turtle)
 
-  app.ticker.add((delta) => {
-    turtle.rotation += 0.01 * delta
-  })
+  // app.ticker.add((delta) => {
+  //   turtle.rotation += 0.01 * delta
+  // })
 
   window.addEventListener('keydown', (event) => {
     switch (event.key) {
